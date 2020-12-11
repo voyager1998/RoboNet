@@ -7,3 +7,5 @@ scratch/
 node_modules
 bower_components
 hdf5/
+draft.py
+.vscode/
