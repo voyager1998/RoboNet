@@ -20,6 +20,7 @@ if __name__ == "__main__":
 
     hparams = {'RNG': 0,
                'ret_fnames': True,
+               #    'load_annotations': True, # does not contain annotations?
                'load_T': args.load_steps,
                'sub_batch_size': 8,
                'action_mismatch': 3,
@@ -41,8 +42,17 @@ if __name__ == "__main__":
     out_tensors = s.run(tensors, feed_dict=loader.build_feed_dict(args.mode))
 
     imgs = out_tensors[0]
+    print("image shape", imgs.shape)
+    states = out_tensors[1]
+    print("state shape", states.shape)
+    actions = out_tensors[2]
+    print("action shape", actions.shape)
 
     writer = imageio.get_writer('test_frames.gif')
     for t in range(imgs.shape[1]):
-        writer.append_data((imgs[0, t, 0] * 255).astype(np.uint8))
+        print("state:   ", states[0, t])
+        # if t < imgs.shape[1]-1:
+            # print("action:  ", actions[0, t])
+        for i in range(3):
+            writer.append_data((imgs[0, t, 0] * 255).astype(np.uint8))
     writer.close()

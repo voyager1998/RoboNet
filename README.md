@@ -6,7 +6,7 @@ Please refer to the [project wiki](https://github.com/SudeepDasari/RoboNet/wiki)
 
 If you find the codebase or dataset useful please consider citing our paper.
 
-```
+```text
 @inproceedings{dasari2019robonet,
     title={RoboNet: Large-Scale Multi-Robot Learning},
     author={Sudeep Dasari and Frederik Ebert and Stephen Tian and Suraj Nair and Bernadette Bucher and Karl Schmeckpeper and Siddharth Singh and Sergey Levine and Chelsea Finn},
@@ -26,4 +26,14 @@ You can find instructions for downloading the dataset on the [project wiki](http
 
 ```bash
 python dataset_visualizer.py hdf5
+python dataset_visualizer.py hdf5 --robots widowx
 ```
+
+## Dataset Spec
+
+State: 5D, [(x, y, z, rotation)?, gripper]
+
+## Robot Self Recognition
+
+* Robot-Supervised Learning for Object Segmentation - requires depth images
+* Self-Supervised Object-in-Gripper Segmentation from Robotic Motions - not open-source
