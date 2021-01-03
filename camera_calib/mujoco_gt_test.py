@@ -39,11 +39,20 @@ if __name__ == "__main__":
             # print("keys in this file:\n", gt.keys())
             print("images shape:", gt['object_inpaint_demo'].shape)
             print("gt camera intrinsic:\n", gt['0_camera_intrinsic'])
-            print("gt camera extrinsic:\n", gt['0_camera_pose'])
+            
+            print("gt camera pose:\n", gt['0_camera_pose'])
             r = Rotation.from_quat([gt['0_camera_pose'][4], gt['0_camera_pose'][5],
                                     gt['0_camera_pose'][6], gt['0_camera_pose'][3]])
             gt_cTw = np.column_stack((r.as_matrix(), gt['0_camera_pose'][:3]))
-            print("gt camera to world transformation:\n", gt_cTw)
+            # print("gt camera to world transformation:\n", gt_cTw)
+            full_gt_cTw = np.row_stack((gt_cTw, [0, 0, 0, 1]))
+            
+            gt_ext = np.linalg.inv(full_gt_cTw)
+            print("gt camera extrinsic:\n", gt_ext)
+
+            gt_proj = gt['0_camera_intrinsic'] @ gt_ext[:3]
+            print("gt projection matrix:\n", gt_proj)
+
         for t in range(gt['object_inpaint_demo'].shape[0]):
             # cv2.imwrite("camera_calib/mujoco_gts/scene_" + str(file_id) +
             #             "_" + str(t) + ".png", gt['object_inpaint_demo'][t])
@@ -64,13 +73,17 @@ if __name__ == "__main__":
     flags = cv2.CALIB_USE_INTRINSIC_GUESS + cv2.CALIB_FIX_PRINCIPAL_POINT
     ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(
         [eef_3d], [pixel_coords], img_shape, intrinsic_guess, None, flags=flags)
-    print("calibrated camera extrinsic:\n", mtx)
+    print("calibrated camera intrinsic:\n", mtx)
 
     r = Rotation.from_rotvec(rvecs[0].reshape(-1))
     ext_R = r.as_matrix()
     ext = np.column_stack((ext_R, tvecs[0]))
 
     full_ext = np.row_stack((ext, [0, 0, 0, 1]))
+    print("calibrated camera extrinsic:\n", full_ext)
+
+    projM = mtx @ full_ext[:3]
+    print("calibrated projection matrix:\n", projM)
 
     cameraTworld = np.linalg.inv(full_ext)
-    print("calibrated camera to world transformation:\n", cameraTworld)
+    # print("calibrated camera to world transformation:\n", cameraTworld)
