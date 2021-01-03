@@ -9,3 +9,5 @@ bower_components
 hdf5/
 draft.py
 .vscode/
+images/
+camera_calib/mujoco_gts/

@@ -29,6 +29,8 @@ python dataset_visualizer.py hdf5
 python dataset_visualizer.py hdf5 --robots widowx
 ```
 
+Candidate Robot Names: sawyer, kuka, R3, widowx, baxter, fetch, franka
+
 ## Dataset Spec
 
 State: 5D, [(x, y, z, rotation)?, gripper]
@@ -37,3 +39,9 @@ State: 5D, [(x, y, z, rotation)?, gripper]
 
 * Robot-Supervised Learning for Object Segmentation - requires depth images
 * Self-Supervised Object-in-Gripper Segmentation from Robotic Motions - not open-source
+
+## Camera Calibration
+
+1. `mkdir camera_calib/mujoco_gts`
+2. Copy all `hdf5` data under `camera_calib/mujoco_gts`
+3. Run `python camera_calib/mujoco_gt_test.py`
