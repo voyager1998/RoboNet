@@ -26,6 +26,7 @@ if __name__ == "__main__":
                'action_mismatch': 3,
                'state_mismatch': 3,
                'splits': [0.8, 0.1, 0.1],
+               'load_random_cam': False,
                'same_cam_across_sub_batch': True,
                'img_size': [240, 320]}
 
@@ -48,12 +49,16 @@ if __name__ == "__main__":
     actions = out_tensors[2]
     print("action shape", actions.shape)
 
-    writer = imageio.get_writer('images/test_frames.gif')
-    for t in range(imgs.shape[1]):
-        imageio.imwrite("images/test_imgs_" + str(t) + ".png", (imgs[0, t, 0] * 255).astype(np.uint8))
-        print("state:   ", states[0, t])
-        # if t < imgs.shape[1]-1:
-        # print("action:  ", actions[0, t])
-        for i in range(1):
-            writer.append_data((imgs[0, t, 0] * 255).astype(np.uint8))
-    writer.close()
+    np.save('images/states', states)
+    
+    for exp_id in range(imgs.shape[0]):
+        print("saving experiment", exp_id)
+        writer = imageio.get_writer('images/experiment_' + str(exp_id) + '.gif')
+        for t in range(imgs.shape[1]):
+            imageio.imwrite("images/exp_" + str(exp_id)+ "_img_" + str(t) + ".png", (imgs[exp_id, t, 0] * 255).astype(np.uint8))
+            print("state:   ", states[exp_id, t])
+            # if t < imgs.shape[1]-1:
+            # print("action:  ", actions[0, t])
+            for i in range(1):
+                writer.append_data((imgs[exp_id, t, 0] * 255).astype(np.uint8))
+        writer.close()

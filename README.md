@@ -26,7 +26,8 @@ You can find instructions for downloading the dataset on the [project wiki](http
 
 ```bash
 python dataset_visualizer.py hdf5
-python dataset_visualizer.py hdf5 --robots widowx
+python dataset_visualizer.py hdf5 --robots baxter
+python dataset_visualizer.py hdf5 --robots baxter --batch_size 8
 ```
 
 Candidate Robot Names: sawyer, kuka, R3, widowx, baxter, fetch, franka
