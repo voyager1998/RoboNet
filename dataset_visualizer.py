@@ -48,11 +48,12 @@ if __name__ == "__main__":
     actions = out_tensors[2]
     print("action shape", actions.shape)
 
-    writer = imageio.get_writer('test_frames.gif')
+    writer = imageio.get_writer('images/test_frames.gif')
     for t in range(imgs.shape[1]):
+        imageio.imwrite("images/test_imgs_" + str(t) + ".png", (imgs[0, t, 0] * 255).astype(np.uint8))
         print("state:   ", states[0, t])
         # if t < imgs.shape[1]-1:
-            # print("action:  ", actions[0, t])
-        for i in range(3):
+        # print("action:  ", actions[0, t])
+        for i in range(1):
             writer.append_data((imgs[0, t, 0] * 255).astype(np.uint8))
     writer.close()
