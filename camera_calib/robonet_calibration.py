@@ -1,8 +1,7 @@
 import cv2
 import numpy as np
-from tqdm import tqdm
 import os
-import datetime
+import matplotlib.pyplot as plt
 
 
 tip_coord = []
@@ -95,3 +94,30 @@ if __name__ == "__main__":
         all_3d_pos = np.load("images/all_3d_pos.npy")
         print("pixel coords shape", all_pixel_coords.shape)
         print("3d pos shape", all_3d_pos.shape)
+
+    # calibration section starts here
+    all_3d_pos = np.array(all_3d_pos[:, 0:3])
+    # TODO: denormalization
+    
+
+    print("3d pos shape", all_3d_pos.shape)
+    all_pixel_coords = np.array(all_pixel_coords,dtype=np.float32)
+
+    intrinsic_guess = np.array([[300.0, 0, 160],
+                                [0, 300.0, 120],
+                                [0, 0, 1]])
+    img_shape = (240, 320)
+    flags = cv2.CALIB_USE_INTRINSIC_GUESS + cv2.CALIB_FIX_PRINCIPAL_POINT
+    ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(
+        [all_3d_pos], [all_pixel_coords],
+        img_shape, intrinsic_guess, None, flags=flags)
+    print("calibrated camera intrinsic:\n", mtx)
+
+    print(all_3d_pos)
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.scatter(all_3d_pos[:, 0], all_3d_pos[:, 1], all_3d_pos[:, 2])
+    ax.set_xlabel('X Label')
+    ax.set_ylabel('Y Label')
+    ax.set_zlabel('Z Label')
+    plt.show()

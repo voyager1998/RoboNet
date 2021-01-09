@@ -53,7 +53,7 @@ def display_annotation(img, labels):
 
 
 if __name__ == "__main__":
-    img = cv2.imread("images/test_imgs_0.png")
+    img = cv2.imread("images/exp_0_img_0.png")
     print(img.shape)
     img = cv2.resize(img, (img.shape[1] * SCALE, img.shape[0] * SCALE))
 
@@ -62,7 +62,7 @@ if __name__ == "__main__":
     go_back, is_fail = annotate_img(img)
     labels[0, 0] = tip_coord[0] / SCALE
     labels[0, 1] = tip_coord[1] / SCALE
+    print(labels)
 
     display_annotation(img, labels)
-    print(labels)
     print("Congrats, you're done with this one!")
