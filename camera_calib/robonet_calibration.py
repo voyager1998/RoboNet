@@ -2,11 +2,17 @@ import cv2
 import numpy as np
 import os
 import matplotlib.pyplot as plt
+from scipy.spatial.transform import Rotation
 
 
 tip_coord = []
+# TODO: automatically load all data from same viewpoint
+use_for_calibration = [0, 1, 2, 4]
+
 SCALE = 4  # how much larger to display the image
 IF_DIRECTLY_CALIBRATE = True
+VISUAL_DISTRIBUTION = False
+VISUAL_REPROJ = True
 
 
 def click_and_crop(event, x, y, flags, param):
@@ -46,7 +52,7 @@ def display_annotation(img, labels):
     cv2.namedWindow("image")
     scaled_x = int(labels[1] * SCALE)
     scaled_y = int(labels[0] * SCALE)
-    img[scaled_x - 3:scaled_x + 3, scaled_y - 3:scaled_y + 3] = [1.0, 0.0, 0.0]
+    img[scaled_x - 3:scaled_x + 3, scaled_y - 3:scaled_y + 3] = [0.0, 0.0, 255.0]
     cv2.imshow("image", img)
     key = cv2.waitKey(0) & 0xFF   # half a second
     cv2.destroyAllWindows()
@@ -71,9 +77,6 @@ if __name__ == "__main__":
         num_exps = states.shape[0]
         print("state shape", states.shape)
         print("There are", num_exps, "experiments")
-
-        # TODO: automatically load all data from same viewpoint
-        use_for_calibration = [0, 1, 2, 4]
 
         all_pixel_coords = []
         all_3d_pos = []
@@ -106,7 +109,7 @@ if __name__ == "__main__":
         all_pixel_coords = np.load("images/all_pixel_coords.npy")
         all_3d_pos = np.load("images/all_3d_pos.npy")
         print("pixel coords shape", all_pixel_coords.shape)
-        print("3d pos shape", all_3d_pos.shape)
+        print("loaded 3d pos shape", all_3d_pos.shape)
 
     # calibration section starts here
     all_3d_pos = np.array(all_3d_pos[:, 0:3])
@@ -115,7 +118,7 @@ if __name__ == "__main__":
     maxs = np.array([0.75, -0.20, -0.05])
     all_3d_pos = denormalization(all_3d_pos, mins, maxs)
     print("3d pos shape", all_3d_pos.shape)
-    print(all_3d_pos)
+    # print(all_3d_pos)
 
     all_pixel_coords = np.array(all_pixel_coords, dtype=np.float32)
 
@@ -129,10 +132,41 @@ if __name__ == "__main__":
         img_shape, intrinsic_guess, None, flags=flags)
     print("calibrated camera intrinsic:\n", mtx)
 
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    ax.scatter(all_3d_pos[:, 0], all_3d_pos[:, 1], all_3d_pos[:, 2])
-    ax.set_xlabel('X Label')
-    ax.set_ylabel('Y Label')
-    ax.set_zlabel('Z Label')
-    plt.show()
+    r = Rotation.from_rotvec(rvecs[0].reshape(-1))
+    ext_R = r.as_matrix()
+    ext = np.column_stack((ext_R, tvecs[0]))
+
+    full_ext = np.row_stack((ext, [0, 0, 0, 1]))
+    print("calibrated camera extrinsic:\n", full_ext)
+
+    projM = mtx @ full_ext[:3]
+    print("calibrated projection matrix:\n", projM)
+
+    if VISUAL_DISTRIBUTION:
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        ax.scatter(all_3d_pos[:, 0], all_3d_pos[:, 1], all_3d_pos[:, 2])
+        ax.set_xlabel('X Label')
+        ax.set_ylabel('Y Label')
+        ax.set_zlabel('Z Label')
+        plt.show()
+
+    if VISUAL_REPROJ:
+        states = np.load("images/states.npy")
+        num_exps = states.shape[0]
+        print("state shape", states.shape)
+        print("There are", num_exps, "experiments")
+        for exp_id in use_for_calibration:
+            for t in range(2):
+                img = cv2.imread("images/exp_" + str(exp_id) +
+                                 "_img_" + str(t) + ".png")
+                img = cv2.resize(
+                    img, (img.shape[1] * SCALE, img.shape[0] * SCALE))
+                state = states[exp_id, t]
+                state = denormalization(state[:3], mins, maxs)
+                state = np.concatenate([state, [1]])
+                print("state:", state)
+                pix_3d = projM @ state
+                pix_2d = np.array([pix_3d[0] / pix_3d[2], pix_3d[1] / pix_3d[2]])
+                print(pix_2d)
+                display_annotation(img, pix_2d)
