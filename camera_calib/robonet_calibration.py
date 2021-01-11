@@ -52,6 +52,19 @@ def display_annotation(img, labels):
     cv2.destroyAllWindows()
 
 
+def denormalization(x, mins, maxs):
+    """
+    x: n x d
+    mins: d
+    maxs: d
+    """
+    out = np.copy(x)
+    delta = maxs - mins
+    out *= delta
+    out += mins
+    return out
+
+
 if __name__ == "__main__":
     if not IF_DIRECTLY_CALIBRATE:
         states = np.load("images/states.npy")
@@ -97,23 +110,25 @@ if __name__ == "__main__":
 
     # calibration section starts here
     all_3d_pos = np.array(all_3d_pos[:, 0:3])
-    # TODO: denormalization
-    
-
+    # denormalization using baxter_right
+    mins = np.array([0.40, -0.67, -0.15])
+    maxs = np.array([0.75, -0.20, -0.05])
+    all_3d_pos = denormalization(all_3d_pos, mins, maxs)
     print("3d pos shape", all_3d_pos.shape)
-    all_pixel_coords = np.array(all_pixel_coords,dtype=np.float32)
+    print(all_3d_pos)
+
+    all_pixel_coords = np.array(all_pixel_coords, dtype=np.float32)
 
     intrinsic_guess = np.array([[300.0, 0, 160],
                                 [0, 300.0, 120],
                                 [0, 0, 1]])
     img_shape = (240, 320)
-    flags = cv2.CALIB_USE_INTRINSIC_GUESS + cv2.CALIB_FIX_PRINCIPAL_POINT
+    flags = cv2.CALIB_USE_INTRINSIC_GUESS  # + cv2.CALIB_FIX_PRINCIPAL_POINT
     ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(
         [all_3d_pos], [all_pixel_coords],
         img_shape, intrinsic_guess, None, flags=flags)
     print("calibrated camera intrinsic:\n", mtx)
 
-    print(all_3d_pos)
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     ax.scatter(all_3d_pos[:, 0], all_3d_pos[:, 1], all_3d_pos[:, 2])
