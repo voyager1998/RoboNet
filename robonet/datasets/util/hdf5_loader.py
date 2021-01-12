@@ -211,8 +211,7 @@ if __name__ == '__main__':
         meta_data = meta_data[meta_data['contains_annotation'] == True]
         imgs, actions, states, annot = load_data((args.file, meta_data.get_file_metadata(args.file)), hparams)
     else:
-        # TODO: the arguments of `load_data` seems to be problematic
-        imgs, actions, states = load_data((args.file, meta_data.get_file_metadata(args.file)), hparams)
+        imgs, actions, states = load_data(args.file, meta_data.get_file_metadata(args.file), hparams)
 
     print('actions', actions.shape)
     print('states', states.shape)

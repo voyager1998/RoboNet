@@ -5,60 +5,36 @@ import argparse
 
 from robonet.datasets import load_metadata
 from robonet.datasets.robonet_dataset import RoboNetDataset
+from robonet.datasets.util.hdf5_loader import load_data, load_qpos, default_loader_hparams
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="calculates or loads meta_data frame")
-    parser.add_argument('path', help='path to files containing hdf5 dataset')
-    parser.add_argument('--robots', type=str, nargs='+', default=None,
-                        help='will construct a dataset with batches split across given robots')
-    parser.add_argument('--batch_size', type=int, default=32,
-                        help='batch size for test loader (should be even for non-time test demo to work)')
-    parser.add_argument('--mode', type=str, default='train', help='mode to grab data from')
-    parser.add_argument('--load_steps', type=int, default=0, help='if value is provided will load <load_steps> steps')
+    parser = argparse.ArgumentParser(description="tests hdf5 data loader without tensorflow dataset wrapper")
+    parser.add_argument('file', type=str, help="path to hdf5 you want to load")
+    parser.add_argument('--load_annotations', action='store_true', help="loads annotations if supplied")
+    parser.add_argument('--load_steps', type=int, default=0,
+                        help="loads <load_steps> steps from the dataset instead of everything")
     args = parser.parse_args()
 
-    hparams = {'RNG': 0,
-               'ret_fnames': True,
-               #    'load_annotations': True, # does not contain annotations?
-               'load_T': args.load_steps,
-               'sub_batch_size': 8,
-               'action_mismatch': 3,
-               'state_mismatch': 3,
-               'splits': [0.8, 0.1, 0.1],
-               'load_random_cam': False,
-               'same_cam_across_sub_batch': True,
-               'img_size': [240, 320]}
+    hparams = tf.contrib.training.HParams(**default_loader_hparams())
+    hparams.load_T = args.load_steps
+    hparams.img_size = [240, 320]
 
-    if args.robots:
-        meta_data = load_metadata(args.path)
-        hparams['same_cam_across_sub_batch'] = True
-        loader = RoboNetDataset(args.batch_size, [meta_data[meta_data['robot'] == r]
-                                                  for r in args.robots], hparams=hparams)
-    else:
-        loader = RoboNetDataset(args.batch_size, args.path, hparams=hparams)
+    assert 'hdf5' in args.file
+    exp_name = args.file.split('/')[-1][:-5]
+    data_folder = '/'.join(args.file.split('/')[:-1])
+    meta_data = load_metadata(data_folder)
 
-    tensors = [loader[x, args.mode] for x in ['images', 'states', 'actions', 'f_names']]
-    s = tf.Session()
-    out_tensors = s.run(tensors, feed_dict=loader.build_feed_dict(args.mode))
+    imgs, actions, states = load_data(args.file, meta_data.get_file_metadata(args.file), hparams)
+    print('actions', actions.shape)
+    print('states', states.shape)
+    print('images', imgs.shape)
 
-    imgs = out_tensors[0]
-    print("image shape", imgs.shape)
-    states = out_tensors[1]
-    print("state shape", states.shape)
-    actions = out_tensors[2]
-    print("action shape", actions.shape)
-
-    np.save('images/states', states)
-    
-    for exp_id in range(imgs.shape[0]):
-        print("saving experiment", exp_id)
-        writer = imageio.get_writer('images/experiment_' + str(exp_id) + '.gif')
-        for t in range(imgs.shape[1]):
-            imageio.imwrite("images/exp_" + str(exp_id)+ "_img_" + str(t) + ".png", (imgs[exp_id, t, 0] * 255).astype(np.uint8))
-            print("state:   ", states[exp_id, t])
-            # if t < imgs.shape[1]-1:
-            # print("action:  ", actions[0, t])
-            for i in range(1):
-                writer.append_data((imgs[exp_id, t, 0] * 255).astype(np.uint8))
-        writer.close()
+    print("saving experiment:", exp_name)
+    writer = imageio.get_writer('images/' + exp_name + '.gif')
+    for t in range(imgs.shape[0]):
+        imageio.imwrite("images/" + exp_name + "_" + str(t) + ".png", (imgs[t, 0] * 255).astype(np.uint8))
+        print("state:   ", states[t])
+        for i in range(1):
+            writer.append_data((imgs[t, 0] * 255).astype(np.uint8))
+    writer.close()
