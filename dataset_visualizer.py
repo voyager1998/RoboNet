@@ -33,8 +33,8 @@ if __name__ == "__main__":
     print("saving experiment:", exp_name)
     writer = imageio.get_writer('images/' + exp_name + '.gif')
     for t in range(imgs.shape[0]):
-        imageio.imwrite("images/" + exp_name + "_" + str(t) + ".png", (imgs[t, 0] * 255).astype(np.uint8))
+        imageio.imwrite("images/" + exp_name + "_" + str(t) + ".png", imgs[t, 0])
         print("state:   ", states[t])
         for i in range(1):
-            writer.append_data((imgs[t, 0] * 255).astype(np.uint8))
+            writer.append_data(imgs[t, 0])
     writer.close()
