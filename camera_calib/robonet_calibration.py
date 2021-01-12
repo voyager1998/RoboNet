@@ -7,7 +7,7 @@ from scipy.spatial.transform import Rotation
 
 tip_coord = []
 # TODO: automatically load all data from same viewpoint
-use_for_calibration = [0, 1, 2, 4]
+use_for_calibration = ["penn_baxter_left_traj14", "penn_baxter_left_traj43", "penn_baxter_left_traj78"]
 
 SCALE = 4  # how much larger to display the image
 IF_DIRECTLY_CALIBRATE = True
@@ -73,20 +73,15 @@ def denormalization(x, mins, maxs):
 
 if __name__ == "__main__":
     if not IF_DIRECTLY_CALIBRATE:
-        states = np.load("images/states.npy")
-        num_exps = states.shape[0]
-        print("state shape", states.shape)
-        print("There are", num_exps, "experiments")
-
         all_pixel_coords = []
         all_3d_pos = []
         for exp_id in use_for_calibration:
-            all_3d_pos.append(states[exp_id])
+            states = np.load("images/states_" + exp_id + ".npy")
+            all_3d_pos.append(states)
 
-            labels = np.empty((states.shape[1], 2))
-            for t in range(states.shape[1]):
-                img = cv2.imread("images/exp_" + str(exp_id) +
-                                 "_img_" + str(t) + ".png")
+            labels = np.empty((states.shape[0], 2))
+            for t in range(states.shape[0]):
+                img = cv2.imread("images/" + exp_id + "_" + str(t) + ".png")
                 print(img.shape)
                 img = cv2.resize(
                     img, (img.shape[1] * SCALE, img.shape[0] * SCALE))
@@ -113,9 +108,9 @@ if __name__ == "__main__":
 
     # calibration section starts here
     all_3d_pos = np.array(all_3d_pos[:, 0:3])
-    # denormalization using baxter_right
-    mins = np.array([0.40, -0.67, -0.15])
-    maxs = np.array([0.75, -0.20, -0.05])
+    # denormalization using baxter_left
+    mins = np.array([0.45, 0.15, -0.15])
+    maxs = np.array([0.75, 0.59, -0.05])
     all_3d_pos = denormalization(all_3d_pos, mins, maxs)
     print("3d pos shape", all_3d_pos.shape)
     # print(all_3d_pos)
@@ -152,17 +147,13 @@ if __name__ == "__main__":
         plt.show()
 
     if VISUAL_REPROJ:
-        states = np.load("images/states.npy")
-        num_exps = states.shape[0]
-        print("state shape", states.shape)
-        print("There are", num_exps, "experiments")
         for exp_id in use_for_calibration:
             for t in range(2):
-                img = cv2.imread("images/exp_" + str(exp_id) +
-                                 "_img_" + str(t) + ".png")
+                img = cv2.imread("images/" + exp_id + "_" + str(t) + ".png")
                 img = cv2.resize(
                     img, (img.shape[1] * SCALE, img.shape[0] * SCALE))
-                state = states[exp_id, t]
+                states = np.load("images/states_" + exp_id + ".npy")
+                state = states[t]
                 state = denormalization(state[:3], mins, maxs)
                 state = np.concatenate([state, [1]])
                 print("state:", state)
