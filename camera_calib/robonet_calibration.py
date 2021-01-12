@@ -137,6 +137,16 @@ if __name__ == "__main__":
     projM = mtx @ full_ext[:3]
     print("calibrated projection matrix:\n", projM)
 
+    cameraTworld = np.linalg.inv(full_ext)
+    print("calibrated camera to world transformation:\n", cameraTworld)
+
+    print("camera 3d position:\n", cameraTworld[:3, 3])
+    R_cTw = cameraTworld[0:3]
+    R_cTw = R_cTw[:, :3]
+    r = Rotation.from_matrix(R_cTw)
+    camera_orient = r.as_quat()
+    print("camera orientation (quarternion):\n", camera_orient)
+
     if VISUAL_DISTRIBUTION:
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
