@@ -23,17 +23,17 @@ class STATE_MISMATCH:
 
 def default_loader_hparams():
     return {
-            'target_adim': 4,
-            'target_sdim': 5,
-            'state_mismatch': STATE_MISMATCH.ERROR,     # TODO make better flag parsing
-            'action_mismatch': ACTION_MISMATCH.ERROR,   # TODO make better flag parsing
-            'img_size': [48, 64],
-            'cams_to_load': [0],
-            'impute_autograsp_action': True,
-            'load_annotations': False,
-            'zero_if_missing_annotation': False, 
-            'load_T': 0                               # TODO implement error checking here for jagged reading
-            }
+        'target_adim': 4,
+        'target_sdim': 5,
+        'state_mismatch': STATE_MISMATCH.ERROR,     # TODO make better flag parsing
+        'action_mismatch': ACTION_MISMATCH.ERROR,   # TODO make better flag parsing
+        'img_size': [48, 64],
+        'cams_to_load': [0],
+        'impute_autograsp_action': True,
+        'load_annotations': False,
+        'zero_if_missing_annotation': False,
+        'load_T': 0                               # TODO implement error checking here for jagged reading
+    }
 
 
 def load_camera_imgs(cam_index, file_pointer, file_metadata, target_dims, start_time=0, n_load=None):
@@ -51,23 +51,24 @@ def load_camera_imgs(cam_index, file_pointer, file_metadata, target_dims, start_
     resize_method = cv2.INTER_CUBIC
     if target_height * target_width < old_height * old_width:
         resize_method = cv2.INTER_AREA
-    
+
     images = np.zeros((n_load, target_height, target_width, 3), dtype=np.uint8)
     if encoding == 'mp4':
         buf = io.BytesIO(cam_group['frames'][:].tostring())
-        img_buffer = [img for t, img in enumerate(imageio.get_reader(buf, format='mp4')) if start_time <= t < n_load + start_time]
+        img_buffer = [img for t, img in enumerate(imageio.get_reader(
+            buf, format='mp4')) if start_time <= t < n_load + start_time]
     elif encoding == 'jpg':
-        img_buffer = [cv2.imdecode(cam_group['frame{}'.format(t)][:], cv2.IMREAD_COLOR)[:, :, ::-1] 
-                                for t in range(start_time, start_time + n_load)]
-    else: 
+        img_buffer = [cv2.imdecode(cam_group['frame{}'.format(t)][:], cv2.IMREAD_COLOR)[:, :, ::-1]
+                      for t in range(start_time, start_time + n_load)]
+    else:
         raise ValueError("encoding not supported")
-    
+
     for t, img in enumerate(img_buffer):
         if (old_height, old_width) == (target_height, target_width):
             images[t] = img
         else:
             images[t] = cv2.resize(img, (target_width, target_height), interpolation=resize_method)
-    
+
     if image_format == 'RGB':
         return images
     elif image_format == 'BGR':
@@ -88,7 +89,14 @@ def load_states(file_pointer, meta_data, hparams):
         return file_pointer['env']['state'][:][:, :hparams.target_sdim]
 
     else:
-        raise ValueError("file sdim - {}, target sdim - {}, pad behavior - {}".format(sdim, hparams.target_sdim, hparams.state_mismatch))
+        raise ValueError("file sdim - {}, target sdim - {}, pad behavior - {}".format(sdim,
+                                                                                      hparams.target_sdim,
+                                                                                      hparams.state_mismatch))
+
+
+def load_qpos(file_pointer, meta_data, hparams):
+    # TODO
+    pass
 
 
 def load_actions(file_pointer, meta_data, hparams):
@@ -99,7 +107,7 @@ def load_actions(file_pointer, meta_data, hparams):
     elif hparams.target_adim == adim + 1 and hparams.impute_autograsp_action and meta_data['primitives'] == 'autograsp':
         action_append, old_actions = np.zeros((a_T, 1)), file_pointer['policy']['actions'][:]
         next_state = file_pointer['env']['state'][:][1:, -1]
-        
+
         high_val, low_val = meta_data['high_bound'][-1], meta_data['low_bound'][-1]
         midpoint = (high_val + low_val) / 2.0
 
@@ -118,7 +126,9 @@ def load_actions(file_pointer, meta_data, hparams):
         return file_pointer['policy']['actions'][:][:, :hparams.target_adim]
 
     else:
-        raise ValueError("file adim - {}, target adim - {}, pad behavior - {}".format(adim, hparams.target_adim, hparams.action_mismatch))
+        raise ValueError("file adim - {}, target adim - {}, pad behavior - {}".format(adim,
+                                                                                      hparams.target_adim,
+                                                                                      hparams.action_mismatch))
 
 
 def load_annotations(file_pointer, metadata, hparams, cams_to_load):
@@ -148,8 +158,9 @@ def load_data(f_name, file_metadata, hparams, rng=None):
     assert os.path.exists(f_name) and os.path.isfile(f_name), "invalid f_name"
     with open(f_name, 'rb') as f:
         buf = f.read()
-    assert hashlib.sha256(buf).hexdigest() == file_metadata['sha256'], "file hash doesn't match meta-data. maybe delete pkl and re-generate?"
-    
+    assert hashlib.sha256(buf).hexdigest(
+    ) == file_metadata['sha256'], "file hash doesn't match meta-data. maybe delete pkl and re-generate?"
+
     with h5py.File(io.BytesIO(buf)) as hf:
         start_time, n_states = 0, min([file_metadata['state_T'], file_metadata['img_T'], file_metadata['action_T'] + 1])
         assert n_states > 1, "must be more than one state in loaded tensor!"
@@ -164,7 +175,7 @@ def load_data(f_name, file_metadata, hparams, rng=None):
             selected_cams.append(cam_index)
         images = np.swapaxes(np.concatenate(images, 0), 0, 1)
 
-        actions = load_actions(hf, file_metadata, hparams).astype(np.float32)[start_time:start_time + n_states-1]
+        actions = load_actions(hf, file_metadata, hparams).astype(np.float32)[start_time:start_time + n_states - 1]
         states = load_states(hf, file_metadata, hparams).astype(np.float32)[start_time:start_time + n_states]
 
         if hparams.load_annotations:
@@ -184,9 +195,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="tests hdf5 data loader without tensorflow dataset wrapper")
     parser.add_argument('file', type=str, help="path to hdf5 you want to load")
     parser.add_argument('--load_annotations', action='store_true', help="loads annotations if supplied")
-    parser.add_argument('--load_steps', type=int, default=0, help="loads <load_steps> steps from the dataset instead of everything")
+    parser.add_argument('--load_steps', type=int, default=0,
+                        help="loads <load_steps> steps from the dataset instead of everything")
     args = parser.parse_args()
-    
+
     assert 'hdf5' in args.file
     data_folder = '/'.join(args.file.split('/')[:-1])
     meta_data = datasets.load_metadata(data_folder)
@@ -199,12 +211,13 @@ if __name__ == '__main__':
         meta_data = meta_data[meta_data['contains_annotation'] == True]
         imgs, actions, states, annot = load_data((args.file, meta_data.get_file_metadata(args.file)), hparams)
     else:
+        # TODO: the arguments of `load_data` seems to be problematic
         imgs, actions, states = load_data((args.file, meta_data.get_file_metadata(args.file)), hparams)
-    
+
     print('actions', actions.shape)
     print('states', states.shape)
     print('images', imgs.shape)
-    
+
     if args.load_annotations:
         for o in range(2):
             w = imageio.get_writer('out{}.gif'.format(o))
@@ -217,4 +230,3 @@ if __name__ == '__main__':
         for i in imgs:
             w.append_data(i)
         w.close()
-

@@ -10,5 +10,6 @@ hdf5/
 draft.py
 .vscode/
 images/
+images_stored/
 camera_calib/mujoco_gts/
 .DS_Store
