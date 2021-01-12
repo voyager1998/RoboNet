@@ -94,9 +94,9 @@ def load_states(file_pointer, meta_data, hparams):
                                                                                       hparams.state_mismatch))
 
 
-def load_qpos(file_pointer, meta_data, hparams):
+def load_qpos(file_pointer, meta_data=None, hparams=None):
     # TODO
-    pass
+    return file_pointer['env']['qpos'][:]
 
 
 def load_actions(file_pointer, meta_data, hparams):
@@ -177,12 +177,13 @@ def load_data(f_name, file_metadata, hparams, rng=None):
 
         actions = load_actions(hf, file_metadata, hparams).astype(np.float32)[start_time:start_time + n_states - 1]
         states = load_states(hf, file_metadata, hparams).astype(np.float32)[start_time:start_time + n_states]
+        qposes = load_qpos(hf)
 
         if hparams.load_annotations:
             annotations = load_annotations(hf, file_metadata, hparams, selected_cams)[start_time:start_time + n_states]
             return images, actions, states, annotations
 
-    return images, actions, states
+    return images, actions, states, qposes
 
 
 if __name__ == '__main__':

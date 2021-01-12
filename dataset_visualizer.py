@@ -25,16 +25,21 @@ if __name__ == "__main__":
     data_folder = '/'.join(args.file.split('/')[:-1])
     meta_data = load_metadata(data_folder)
 
-    imgs, actions, states = load_data(args.file, meta_data.get_file_metadata(args.file), hparams)
+    imgs, actions, states, qposes = load_data(args.file, meta_data.get_file_metadata(args.file), hparams)
     print('actions', actions.shape)
     print('states', states.shape)
     print('images', imgs.shape)
+    print('qposes', qposes.shape)
 
     print("saving experiment:", exp_name)
+    np.save("images/states_" + exp_name, states)
+    np.save("images/qposes_" + exp_name, qposes)
+
     writer = imageio.get_writer('images/' + exp_name + '.gif')
     for t in range(imgs.shape[0]):
         imageio.imwrite("images/" + exp_name + "_" + str(t) + ".png", imgs[t, 0])
         print("state:   ", states[t])
+        print("qpos:    ", qposes[t])
         for i in range(1):
             writer.append_data(imgs[t, 0])
     writer.close()
