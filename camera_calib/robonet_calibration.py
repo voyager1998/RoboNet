@@ -10,7 +10,7 @@ tip_coord = []
 use_for_calibration = ["penn_baxter_left_traj14", "penn_baxter_left_traj43", "penn_baxter_left_traj78"]
 
 SCALE = 4  # how much larger to display the image
-IF_DIRECTLY_CALIBRATE = True
+IF_DIRECTLY_CALIBRATE = False
 VISUAL_DISTRIBUTION = False
 VISUAL_REPROJ = True
 
@@ -56,6 +56,7 @@ def display_annotation(img, labels):
     cv2.imshow("image", img)
     key = cv2.waitKey(0) & 0xFF   # half a second
     cv2.destroyAllWindows()
+    return img
 
 
 def denormalization(x, mins, maxs):
@@ -170,4 +171,5 @@ if __name__ == "__main__":
                 pix_3d = projM @ state
                 pix_2d = np.array([pix_3d[0] / pix_3d[2], pix_3d[1] / pix_3d[2]])
                 print(pix_2d)
-                display_annotation(img, pix_2d)
+                annotated = display_annotation(img, pix_2d)
+                cv2.imwrite("images/reproj_" + exp_id + "_" + str(t) + ".png", annotated)

@@ -22,32 +22,29 @@ If you find the codebase or dataset useful please consider citing our paper.
 
 You can find instructions for downloading the dataset on the [project wiki](https://github.com/SudeepDasari/RoboNet/wiki/Getting-Started) as well. All data is provided under the [Creative Commons BY 4.0](https://creativecommons.org/licenses/by/4.0/legalcode) license.
 
-## Dataset Visualization
-
-```bash
-python dataset_visualizer.py hdf5
-python dataset_visualizer.py hdf5 --robots baxter
-python dataset_visualizer.py hdf5 --robots baxter --batch_size 8
-```
-
-Candidate Robot Names: sawyer, kuka, R3, widowx, baxter, fetch, franka
+For our project, follow the instruction on the [project wiki](https://github.com/SudeepDasari/RoboNet/wiki/Getting-Started), then download the small subset of RoboNet and put them under `hdf5` folder.
 
 ## Dataset Spec
 
 State: 5D, [(x, y, z, rotation)?, gripper]
 
-## Robot Self Recognition
+## Dataset Visualization
 
-* Robot-Supervised Learning for Object Segmentation - requires depth images
-* Self-Supervised Object-in-Gripper Segmentation from Robotic Motions - not open-source
+```bash
+mkdir images
+python dataset_visualizer.py hdf5/experiment_name.hdf5
+```
+
+Candidate Robot Names: sawyer, kuka, R3, widowx, baxter, fetch, franka
 
 ## Camera Calibration
 
-1. `mkdir camera_calib/mujoco_gts`
-2. Copy all `hdf5` data under `camera_calib/mujoco_gts`
-3. Run `python camera_calib/mujoco_gt_test.py`
-
 Penn uses Logitech C920 camera, and the camera intrinsic is `[641.5, 0, 320.0, 0, 641.5, 240.0, 0, 0, 1]`.
+
+1. Run `dataset_visualizer.py` on at least 3 experiments. The corresponding data are stored in `images/`
+2. Change `robonet_calibration.py` around line 10 `use_for_calibration` to the desired experiment names
+3. `python camera_calib/robonet_calibration.py`
+4. Click the end effector in the image, and press `space` to proceed to the next image.
 
 ## Workspace Dimension
 
