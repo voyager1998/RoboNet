@@ -37,6 +37,12 @@ python dataset_visualizer.py hdf5/experiment_name.hdf5
 
 Candidate Robot Names: sawyer, kuka, R3, widowx, baxter, fetch, franka
 
+### Missing information
+
+action: google, stanford fetch
+
+qpos: stanford franka corr
+
 ## Camera Calibration
 
 Penn uses Logitech C920 camera, and the camera intrinsic is `[641.5, 0, 320.0, 0, 641.5, 240.0, 0, 0, 1]`.
