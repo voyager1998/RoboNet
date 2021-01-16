@@ -196,7 +196,7 @@ def load_data_costumized(f_name, file_metadata, hparams, rng=None):
     ws_min = file_metadata['low_bound']
     ws_max = file_metadata['high_bound']
     viewpoint = file_metadata['camera_configuration']
-    print(file_metadata['camera_type'])
+    # print(file_metadata['camera_type'])
 
     # For reading hdf5 file directly
     with h5py.File(io.BytesIO(buf)) as hf:
