@@ -41,6 +41,7 @@ def annotate_img(img):
             is_fail = False
         elif key == ord("f"):
             is_fail = True
+            break
         elif key == ord("r"):
             go_back = True
             break
@@ -76,11 +77,14 @@ if __name__ == "__main__":
     if not IF_DIRECTLY_CALIBRATE:
         all_pixel_coords = []
         all_3d_pos = []
+        num_annotated = 0
         for exp_id in use_for_calibration:
             states = np.load("images/states_" + exp_id + ".npy")
-            all_3d_pos.append(states)
+            # all_3d_pos.append(states)
 
-            labels = np.empty((states.shape[0], 2))
+            # labels = np.empty((states.shape[0], 2))
+            labels = []
+            temp_states = []
             for t in range(states.shape[0]):
                 img = cv2.imread("images/" + exp_id + "_" + str(t) + ".png")
                 print(img.shape)
@@ -88,16 +92,26 @@ if __name__ == "__main__":
                     img, (img.shape[1] * SCALE, img.shape[0] * SCALE))
 
                 go_back, is_fail = annotate_img(img)
-                labels[t, 0] = tip_coord[0] / SCALE
-                labels[t, 1] = tip_coord[1] / SCALE
 
-                display_annotation(img, labels[t])
-                print(labels[t])
+                if not is_fail:
+                    x = tip_coord[0] / SCALE
+                    y = tip_coord[1] / SCALE
+                    display_annotation(img, [x,y])
+                    temp_states.append(states[t])
+                    labels.append([x, y])
+                    print(labels[-1])
+                else:
+                    print("skip label")
+                num_annotated += 1
+                print("Annotated", num_annotated)
+            all_pixel_coords.extend(labels) # |exp * T| x 2
+            all_3d_pos.extend(temp_states) # |exp * T| x 3
 
-            all_pixel_coords.append(labels)
 
-        all_pixel_coords = np.concatenate(all_pixel_coords)
-        all_3d_pos = np.concatenate(all_3d_pos)
+        all_pixel_coords = np.array(all_pixel_coords)
+        all_3d_pos = np.array(all_3d_pos)
+
+
         np.save("images/all_pixel_coords", all_pixel_coords)
         np.save("images/all_3d_pos", all_3d_pos)
         print("Congrats, you're done with this one!")
@@ -122,7 +136,7 @@ if __name__ == "__main__":
                                 [0, 300.0, 120],
                                 [0, 0, 1]])
     img_shape = (240, 320)
-    flags = cv2.CALIB_USE_INTRINSIC_GUESS  # + cv2.CALIB_FIX_PRINCIPAL_POINT
+    flags = cv2.CALIB_USE_INTRINSIC_GUESS + cv2.CALIB_FIX_PRINCIPAL_POINT + cv2.CALIB_FIX_FOCAL_LENGTH
     ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(
         [all_3d_pos], [all_pixel_coords],
         img_shape, intrinsic_guess, None, flags=flags)
