@@ -53,7 +53,7 @@ if __name__ == "__main__":
         for i in range(visuals):
             f = exp_same_view[vp][i]
             exp_name = f.split('/')[-1][:-5]
-            imgs, states, qposes, ws_min, ws_max, viewpoint = load_data_costumized(f,
+            imgs, states, qposes, ws_min, ws_max, viewpoint = load_data_customized(f,
                                                                                    meta_data.get_file_metadata(f),
                                                                                    hparams)
             print("saving experiment:", exp_name)
