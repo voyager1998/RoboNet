@@ -184,7 +184,7 @@ def load_data(f_name, file_metadata, hparams, rng=None):
 
     return images, actions, states
 
-def load_data_costumized(f_name, file_metadata, hparams, rng=None):
+def load_data_customized(f_name, file_metadata, hparams, rng=None):
     rng = random.Random(rng)
 
     assert os.path.exists(f_name) and os.path.isfile(f_name), "invalid f_name"

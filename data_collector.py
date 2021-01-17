@@ -6,7 +6,7 @@ import os
 
 from robonet.datasets import load_metadata
 from robonet.datasets.robonet_dataset import RoboNetDataset
-from robonet.datasets.util.hdf5_loader import load_data, load_qpos, default_loader_hparams, load_data_costumized
+from robonet.datasets.util.hdf5_loader import load_data, load_qpos, default_loader_hparams, load_data_customized
 
 NUM_VISUAL_PER_VIEW = 3
 
@@ -22,7 +22,7 @@ def collect_same_viewpoint(robot, directory):
         if robot in f:
             path = directory + f
             print(path)
-            _, _, _, _, _, viewpoint = load_data_costumized(
+            _, _, _, _, _, viewpoint = load_data_customized(
                 path, meta_data.get_file_metadata(path), hparams)
             if viewpoint not in exp_same_view:
                 exp_same_view[viewpoint] = [path]
