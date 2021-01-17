@@ -5,7 +5,7 @@ import argparse
 
 from robonet.datasets import load_metadata
 from robonet.datasets.robonet_dataset import RoboNetDataset
-from robonet.datasets.util.hdf5_loader import load_data, load_qpos, default_loader_hparams
+from robonet.datasets.util.hdf5_loader import load_data, load_qpos, default_loader_hparams, load_data_costumized
 
 
 if __name__ == "__main__":
@@ -25,8 +25,9 @@ if __name__ == "__main__":
     data_folder = '/'.join(args.file.split('/')[:-1])
     meta_data = load_metadata(data_folder)
 
-    imgs, actions, states, qposes = load_data(args.file, meta_data.get_file_metadata(args.file), hparams)
-    print('actions', actions.shape)
+    imgs, states, qposes, ws_min, ws_max, viewpoint = load_data_costumized(args.file,
+                                                                           meta_data.get_file_metadata(args.file),
+                                                                           hparams)
     print('states', states.shape)
     print('images', imgs.shape)
     print('qposes', qposes.shape)

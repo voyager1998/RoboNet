@@ -30,12 +30,26 @@ State: 5D, [(x, y, z, rotation)?, gripper]
 
 ## Dataset Visualization
 
+For visualizing specific hdf5 file:
+
 ```bash
 mkdir images
 python dataset_visualizer.py hdf5/experiment_name.hdf5
 ```
 
+For collecting and visualizing experiments on specific robot and viewpoint, run
+
+```bash
+python data_collector.py hdf5/ berkeley_sawyer
+```
+
 Candidate Robot Names: sawyer, kuka, R3, widowx, baxter, fetch, franka
+
+### Missing information
+
+action: google, stanford fetch
+
+qpos: stanford franka corr
 
 ## Camera Calibration
 
