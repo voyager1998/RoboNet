@@ -184,6 +184,7 @@ def load_data(f_name, file_metadata, hparams, rng=None):
 
     return images, actions, states
 
+
 def load_data_customized(f_name, file_metadata, hparams, rng=None):
     rng = random.Random(rng)
 
@@ -214,6 +215,10 @@ def load_data_customized(f_name, file_metadata, hparams, rng=None):
         images = np.swapaxes(np.concatenate(images, 0), 0, 1)
 
         states = load_states(hf, file_metadata, hparams).astype(np.float32)[start_time:start_time + n_states]
+        # Denormalize
+        states *= (ws_max - ws_min)
+        states += ws_min
+
         qposes = load_qpos(hf)
 
     return images, states, qposes, ws_min, ws_max, viewpoint
