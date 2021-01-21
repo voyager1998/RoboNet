@@ -13,7 +13,8 @@ from robonet.datasets.util.hdf5_loader import (
     load_data_customized,
 )
 
-NUM_VISUAL_PER_VIEW = 3
+# when this number if large enough, we collect all corresponding data
+NUM_VISUAL_PER_VIEW = 1000
 
 
 def collect_same_viewpoint(robot, directory):
@@ -39,7 +40,7 @@ def collect_same_viewpoint(robot, directory):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="tests hdf5 data loader without tensorflow dataset wrapper"
+        description="Collect data corresponding to specific robot, and organize them by viewpoints"
     )
     parser.add_argument("directory", type=str, help="path to dataset folder")
     parser.add_argument("robot", type=str, help="robot")

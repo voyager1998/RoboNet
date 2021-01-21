@@ -43,6 +43,12 @@ For collecting and visualizing experiments on specific robot and viewpoint, run
 python data_collector.py hdf5/ berkeley_sawyer
 ```
 
+For calibrating a specific viewpoint of a robot, run
+
+```bash
+python camera_calib/robot_viewpoint_calib.py berkeley_sawyer sudri0 3 
+```
+
 Candidate Robot Names: sawyer, kuka, R3, widowx, baxter, fetch, franka
 
 ### Missing information
